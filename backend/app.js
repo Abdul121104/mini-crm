@@ -24,7 +24,14 @@ const corsOptions = {
   origin: process.env.FRONTEND_URL.replace(/\/$/, ''),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'user-id',
+    'X-Requested-With',
+    'Accept',
+    'Origin'
+  ],
   exposedHeaders: ['Content-Range', 'X-Content-Range']
 };
 
@@ -33,14 +40,18 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const sessionSecret = process.env.SESSION_SECRET || '373beba3f2b2bbddee2010aa663b4eee36dbb65e78e425ad93e0a6541b7d54d3b7a0f46d73e382f5fba7097ef7ce56e12f';
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
   cookie: {
     secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     maxAge: 24 * 60 * 60 * 1000
-  }
+  },
+  proxy: true
 }));
 
 app.use(passport.initialize());
